@@ -205,6 +205,25 @@ write.csv(df_python, file = "Dummy1.csv")
 df1_Agg <- read_csv("out_Agg_dummy_Y1.csv")
 
 
+colnames(df1_Agg)
+
+colnames(df1_Agg)[7]<-"DaysInHospital"
+
+#linear model
+linear.model <- lm(DaysInHospital ~. , data=df1_Agg)
+summary(linear.model)
+
+pred1 <- predict(linear.model, newdata=df2_Agg[-7])
+
+pred1
+
+
+m<-pred1
+o<-df2_Agg[7]
+
+
+rm<- (sqrt(mean((m - o) ** 2)))
+
 
 
 
