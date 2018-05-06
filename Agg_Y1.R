@@ -200,8 +200,9 @@ sapply(df_python, function(x) sum(is.na(x))) # of missing variables
 # Write CSV in R
 write.csv(df_python, file = "Dummy1.csv")
 
+#########################################################################################
 # bring the file back from python with dummy variables
-df_Agg1 <- read_csv("out_Agg_dummy_r01.csv")
+df1_Agg <- read_csv("out_Agg_dummy_Y1.csv")
 
 
 

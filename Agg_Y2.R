@@ -129,5 +129,5 @@ write.csv(df_python2, file = "Dummy2.csv")
 
 #########################################################################################
 # bring the file back from python with dummy variables
-df_Agg2 <- read_csv("out_Agg_dummy_Y2_r01.csv")
+df2_Agg <- read_csv("out_Agg_dummy_Y2.csv")
 
