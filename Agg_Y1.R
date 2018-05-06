@@ -50,6 +50,9 @@ df1$DSFS<- case_when(
 summary(df1$DSFS)
 df1$DSFS <- as.integer(df1$DSFS)
 
+#dropping Year column
+df1$Year <- NULL
+
 #converting pseudonyms for EDA later on
 df1$MemberID <- as.character(df1$MemberID)
 df1$ProviderID <- as.character(df1$ProviderID)
@@ -180,9 +183,9 @@ ggcorrplot(corr,tl.cex = 6, tl.srt = 90) + ggtitle("Correlation of Numerical Var
 # before output to python lets fix char variable to int
 df_python <- df1
 str(df_python)
-df_python$ProviderID<- as.numeric(df_python$ProviderID)
-df_python$Vendor<- as.numeric(df_python$Vendor)
-df_python$PCP<- as.numeric(df_python$PCP)
+df_python$ProviderID<- as.integer(df_python$ProviderID)
+df_python$Vendor<- as.integer(df_python$Vendor)
+df_python$PCP<- as.integer(df_python$PCP)
 
 sapply(df_python, function(x) sum(is.na(x))) # of missing variables
 
