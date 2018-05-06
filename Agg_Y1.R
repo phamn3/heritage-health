@@ -178,6 +178,12 @@ corr
 ggcorrplot(corr,tl.cex = 6, tl.srt = 90) + ggtitle("Correlation of Numerical Variables")
 #highest positive correlation is between Age and DrugCount
 
+###categorical variables
+ggplot(data = profiles) +
+  geom_count(mapping = aes(x = drinks, y = drugs))
+
+ggplot(data = df_select) +
+  geom_count(mapping = aes(x = diet_fix, y = religion_fix))
 
 ##########################################################################################
 # before output to python lets fix char variable to int

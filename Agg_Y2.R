@@ -34,6 +34,9 @@ df2$DSFS <- case_when(
 #sanity check
 summary(df2$DSFS)
 
+df2$Year <- NULL
+
+
 #converting pseudonyms for EDA later on
 df2$MemberID <- as.character(df2$MemberID)
 
@@ -119,10 +122,10 @@ df_python2$ProviderID<- as.numeric(df_python2$ProviderID)
 df_python2$Vendor<- as.numeric(df_python2$Vendor)
 df_python2$PCP<- as.numeric(df_python2$PCP)
 
-sapply(df_python, function(x) sum(is.na(x)))
+sapply(df_python2, function(x) sum(is.na(x)))
 
 # Write CSV in R
-write.csv(df_python, file = "Dummy2.csv")
+write.csv(df_python2, file = "Dummy2.csv")
 
 
 # bring the file back from python with dummy variables
