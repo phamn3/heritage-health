@@ -134,18 +134,14 @@ df2_Agg <- read_csv("out_Agg_dummy_Y2.csv")
 
 colnames(df2_Agg)
 
-colnames(df2_Agg)[7]<-"DaysInHospital"
-
-#fix the sex variables , first change the column name and then make value > 0 to 1
-colnames(df2_Agg)[85]<- "Sex_F"
-colnames(df2_Agg)[86]<- "Sex_M"
-colnames(df2_Agg)[87]<- "Sex_Unknown"
-
-
+#drop duplicate column that got introduced in python code
+df2_Agg$MemberID_Count_1<- NULL
+#fix the values for sex variable
 df2_Agg$Sex_F <- ifelse(df2_Agg$Sex_F > 0, 1, 0)
 df2_Agg$Sex_M <- ifelse(df2_Agg$Sex_M > 0, 1, 0)
-df2_Agg$Sex_Unknown <- ifelse(df2_Agg$Sex_Unknown > 0, 1, 0)
+df2_Agg$Sex_Missing <- ifelse(df2_Agg$Sex_Missing > 0, 1, 0)
 
-
+####### adding log of DaysInHospital"
+df2_Agg$LogDaysInHospital <- log(df2_Agg$DaysInHospital + 1)
 
 

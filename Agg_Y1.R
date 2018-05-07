@@ -80,7 +80,7 @@ df1$LengthOfStay<- case_when(
 )
 summary(df1$LengthOfStay)
 df1$LengthOfStay <- as.integer(df1$LengthOfStay)
-str(df$LengthOfStay)
+str(df1$LengthOfStay)
 
 # fixing drug count
 df1$DrugCount[df1$DrugCount == "7+"] <- 7
@@ -179,6 +179,10 @@ ggcorrplot(corr,tl.cex = 6, tl.srt = 90) + ggtitle("Correlation of Numerical Var
 #highest positive correlation is between Age and DrugCount
 
 
+
+
+
+
 ###categorical variables
 ggplot(data = df1) +
   geom_count(mapping = aes(x = Sex, y = Specialty))
@@ -232,38 +236,85 @@ df1_Agg <- read_csv("out_Agg_dummy_Y1.csv")
 
 
 colnames(df1_Agg)
-
-colnames(df1_Agg)[7]<-"DaysInHospital"
-
-#fix the sex variables , first change the column name and then make value > 0 to 1
-colnames(df1_Agg)[85]<- "Sex_F"
-colnames(df1_Agg)[86]<- "Sex_M"
-colnames(df1_Agg)[87]<- "Sex_Unknown"
-
-
+#drop duplicate column that got introduced in python code
+df1_Agg$MemberID_Count_1<- NULL
+#fix the values of sex variable
 df1_Agg$Sex_F <- ifelse(df1_Agg$Sex_F > 0, 1, 0)
 df1_Agg$Sex_M <- ifelse(df1_Agg$Sex_M > 0, 1, 0)
-df1_Agg$Sex_Unknown <- ifelse(df1_Agg$Sex_Unknown > 0, 1, 0)
+df1_Agg$Sex_Missing <- ifelse(df1_Agg$Sex_Missing > 0, 1, 0)
 
-  
+df1_Agg<- df1_Agg[df1_Agg$DaysInHospital< 365,]
+
+
+#EDA for some variables
+hist((df1_Agg$DaysInHospital[df1_Agg$DaysInHospital>0]), col="darkgreen", main="Agg_DIH", xlab="DIH", ylab="SUM")
+
+
+# correlation between dayinhospital and rest of the variables.
+cor_output<- as.data.frame(cor(df1_Agg$DaysInHospital,df1_Agg))
+
+
+corr <- round(cor(df1_Agg, use="all.obs", method = "pearson"),5)
+corr
+melt_corr <- melt(corr)
+attach(melt_corr)
+head(melt_corr[order(value, decreasing=TRUE), ], 150)
+tail(melt_corr[order(value, decreasing=TRUE), ], 30)
+
+
+ggcorrplot(corr,tl.cex = 6, tl.srt = 90) + ggtitle("Correlation of Numerical Variables")
+
+
+
+
 ####### adding log of DaysInHospital"
-#mutate(df1_Agg$LogDaysInHospital <- log(df1_Agg$DaysInHospital + 1))
+df1_Agg$LogDaysInHospital <- log(df1_Agg$DaysInHospital + 1)
 
-#linear model with DaysInHospital
-linear.model <- lm(DaysInHospital ~. , data=df1_Agg)
-summary(linear.model)
 
-pred1 <- predict(linear.model, newdata=df2_Agg[-7])
-pred1
-
-m<-pred1
-o<-df2_Agg[7]
-
-rm<- (sqrt(mean((m - o) ** 2)))
 
 #### linear model using LogDaysInHospital
-#linear.model <- lm(LogDaysInHospital ~. - DaysInHospital , data=df1_Agg)
-#summary(linear.model)
+linear.model <- lm(LogDaysInHospital ~. , data=df1_Agg[-7])
+summary(linear.model)
+
+pred1 <- predict(linear.model, newdata=df2_Agg[,-c(7,108)])
+pred1
+
+
+m<-pred1
+o<-df2_Agg[108]
+
+rm<- (sqrt(mean((m - o)^2)))
+
+rmse(o,m)
+###############ridge regression using glmnet ##################
+x<- as.matrix(df1_Agg[,-c(7,108)])
+y<- df1_Agg$LogDaysInHospital
+
+lambdas <- 10^seq(3, -2, by = -.1)
+
+fit <- glmnet(x , y, alpha = 0, lambda = lambdas)
+summary(fit)
+
+cv_fit <- cv.glmnet(x, y, alpha = 0, lambda = lambdas)
+plot(cv_fit)
+opt_lambda <- cv_fit$lambda.min
+opt_lambda
+
+fit <- cv_fit$glmnet.fit
+summary(fit)
+
+x1<- as.matrix(df2_Agg[,-c(7,108)])
+
+y_predicted <- predict(fit, s = opt_lambda, newx = x1)
+
+y1<-df2_Agg$LogDaysInHospital
+# Sum of Squares Total and Error
+sst <- sum((y1 - mean(y1))^2)
+sse <- sum((y_predicted - y1)^2)
+
+# R squared
+rsq <- 1 - sse / sst
+rsq
 
 
 
@@ -271,10 +322,28 @@ rm<- (sqrt(mean((m - o) ** 2)))
 # lasso
 library(glmnet)
 
-lasso.mod <- glmnet(df1_Agg[-7], df1_Agg[7], alpha = 1)
-lasso.pred <- predict(lasso.mod, s = bestlam, newx = df2_Agg[-7])
-mean((lasso.pred-df2_Agg[7])^2)
+lasso.mod <- glmnet(x, y, alpha = 1)
+lasso.pred <- predict(lasso.mod, s = lambdas, newx = x1)
+rm<- (sqrt(mean((lasso.pred-y1)^2)))
 
+
+
+#random forest #######################
+set.seed(123)
+require(randomForest)
+model.rf=randomForest(df1_Agg$LogDaysInHospital ~ . , data = df1_Agg[-7])
+
+set.seed(1)
+rf_mod <- randomForest(LogDaysInHospital~., data=df1_Agg)
+print(rf_mod) #print results
+importance(rf_mod) #look at importance of predictors
+varImpPlot(rf_mod)
+
+#predictions with probabilities
+rf_pred <- predict(rf_mod, newdata=test[,-23], type="prob")
+rf_auc <- auc(test$readmitted, rf_pred[,2])
+plot(roc(test$readmitted,rf_pred[,2]), main="ROC of Random Forest")
+rf_auc
 
 
 
