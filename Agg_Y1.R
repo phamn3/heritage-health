@@ -178,12 +178,38 @@ corr
 ggcorrplot(corr,tl.cex = 6, tl.srt = 90) + ggtitle("Correlation of Numerical Variables")
 #highest positive correlation is between Age and DrugCount
 
-###categorical variables
-ggplot(data = profiles) +
-  geom_count(mapping = aes(x = drinks, y = drugs))
 
-ggplot(data = df_select) +
-  geom_count(mapping = aes(x = diet_fix, y = religion_fix))
+###categorical variables
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = Sex, y = Specialty))
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = Sex, y = AgeAtFirstClaim))
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = CharlsonIndex, y = AgeAtFirstClaim))
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = LengthOfStay, y = PrimaryConditionGroup))
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = LengthOfStay, y = Specialty))
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = LengthOfStay, y = AgeAtFirstClaim))
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(y = PlaceSvc, x = AgeAtFirstClaim))
+
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = PlaceSvc, y = Specialty))
+
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = Sex, y = PrimaryConditionGroup))
+### end categorical variables
+
 
 ##########################################################################################
 # before output to python lets fix char variable to int
@@ -217,15 +243,18 @@ pred1 <- predict(linear.model, newdata=df2_Agg[-7])
 
 pred1
 
-
 m<-pred1
 o<-df2_Agg[7]
 
 
 rm<- (sqrt(mean((m - o) ** 2)))
 
+# lasso
+library(glmnet)
 
-
+lasso.mod <- glmnet(df1_Agg[-7], df1_Agg[7], alpha = 1)
+lasso.pred <- predict(lasso.mod, s = bestlam, newx = df2_Agg[-7])
+mean((lasso.pred-df2_Agg[7])^2)
 
 
 
