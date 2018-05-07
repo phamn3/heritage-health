@@ -235,19 +235,38 @@ colnames(df1_Agg)
 
 colnames(df1_Agg)[7]<-"DaysInHospital"
 
-#linear model
+#fix the sex variables , first change the column name and then make value > 0 to 1
+colnames(df1_Agg)[85]<- "Sex_F"
+colnames(df1_Agg)[86]<- "Sex_M"
+colnames(df1_Agg)[87]<- "Sex_Unknown"
+
+
+df1_Agg$Sex_F <- ifelse(df1_Agg$Sex_F > 0, 1, 0)
+df1_Agg$Sex_M <- ifelse(df1_Agg$Sex_M > 0, 1, 0)
+df1_Agg$Sex_Unknown <- ifelse(df1_Agg$Sex_Unknown > 0, 1, 0)
+
+  
+####### adding log of DaysInHospital"
+#mutate(df1_Agg$LogDaysInHospital <- log(df1_Agg$DaysInHospital + 1))
+
+#linear model with DaysInHospital
 linear.model <- lm(DaysInHospital ~. , data=df1_Agg)
 summary(linear.model)
 
 pred1 <- predict(linear.model, newdata=df2_Agg[-7])
-
 pred1
 
 m<-pred1
 o<-df2_Agg[7]
 
-
 rm<- (sqrt(mean((m - o) ** 2)))
+
+#### linear model using LogDaysInHospital
+#linear.model <- lm(LogDaysInHospital ~. - DaysInHospital , data=df1_Agg)
+#summary(linear.model)
+
+
+
 
 # lasso
 library(glmnet)
