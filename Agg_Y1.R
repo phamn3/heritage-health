@@ -132,20 +132,12 @@ df1$ProcedureGroup[is.na(df1$ProcedureGroup)]<- "Missing_ProcedureGroup"
 str(df1)
 
 ################################ Exploratory Data Analysis #################################
-#majority of claims were within 1 month of the first claim of that year (aka a lot of revisits)
 ggplot(df1, aes(DSFS)) + geom_histogram(binwidth = 1) + ggtitle("DSFS") + xlab("DSFS")
-
-#Specialty - most go into for Lab tests, Internal Med, or General Practice
 ggplot(df1, aes(Specialty)) + geom_bar(stat="count") + xlab("Specialty") + coord_flip()
-
-#PlaceSvc - majority to an Office
 ggplot(df1, aes(PlaceSvc)) + geom_bar(stat="count") + xlab("PlaceSvc") + coord_flip()
-
-#PayDelay - majority paydelays between 30 to 40 days
 ggplot(df1, aes(PayDelay)) + geom_histogram(binwidth = 10) + ggtitle("PayDelay") + xlab("PayDelay")
 
 #Length of Stay
-# alot of missing variables (0 length of stay), after that ppl typically stay 1 day at the hospital
 ggplot(df1, aes(LengthOfStay)) + geom_histogram() + ggtitle("LengthOfStay") + xlab("LengthOfStay")
 stem(df1$LengthOfStay)
 
@@ -179,46 +171,28 @@ ggcorrplot(corr,tl.cex = 6, tl.srt = 90) + ggtitle("Correlation of Numerical Var
 #highest positive correlation is between Age and DrugCount
 
 
+########################### Categorical variables ##################################
+ggplot(data = df1) + geom_count(mapping = aes(x = Sex, y = Specialty))
 
+ggplot(data = df1) + geom_count(mapping = aes(x = Sex, y = AgeAtFirstClaim))
 
+ggplot(data = df1) + geom_count(mapping = aes(x = CharlsonIndex, y = AgeAtFirstClaim))
 
+ggplot(data = df1) + geom_count(mapping = aes(x = LengthOfStay, y = PrimaryConditionGroup))
 
-###categorical variables
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = Sex, y = Specialty))
+ggplot(data = df1) + geom_count(mapping = aes(x = LengthOfStay, y = Specialty))
 
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = Sex, y = AgeAtFirstClaim))
+ggplot(data = df1) + geom_count(mapping = aes(x = LengthOfStay, y = AgeAtFirstClaim))
 
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = CharlsonIndex, y = AgeAtFirstClaim))
+ggplot(data = df1) + geom_count(mapping = aes(y = PlaceSvc, x = AgeAtFirstClaim))
 
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = LengthOfStay, y = PrimaryConditionGroup))
+ggplot(data = df1) + geom_count(mapping = aes(x = PlaceSvc, y = Specialty))
 
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = LengthOfStay, y = Specialty))
+ggplot(data = df1) + geom_count(mapping = aes(x = Sex, y = PrimaryConditionGroup))
 
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = LengthOfStay, y = AgeAtFirstClaim))
+ggplot(data = df1) + geom_count(mapping = aes(x = Sex, y = DrugCount))
 
-ggplot(data = df1) +
-  geom_count(mapping = aes(y = PlaceSvc, x = AgeAtFirstClaim))
-
-
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = PlaceSvc, y = Specialty))
-
-
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = Sex, y = PrimaryConditionGroup))
-
-ggplot(data = df1) +
-  geom_count(mapping = aes(x = Sex, y = DrugCount))
-
-ggplot(data = df1) +
-  geom_count(mapping = aes(y = AgeAtFirstClaim, x = DrugCount))
-### end categorical variables
+ggplot(data = df1) + geom_count(mapping = aes(y = AgeAtFirstClaim, x = DrugCount))
 
 
 ##########################################################################################
