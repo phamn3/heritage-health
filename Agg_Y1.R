@@ -288,18 +288,17 @@ rmse(log(0 + 1), df2_Agg$LogDaysInHospital)
 # Testing a base model2 with DIH_Y2 = mean(DIH_Y1)
 rmse(mean(df1_Agg$LogDaysInHospital, na.rm = TRUE), df2_Agg$LogDaysInHospital)
 
-####  testing linear model with few features
 
-linear.model <- lm(LogDaysInHospital ~. , data=df1_Agg[-7])
+####  testing linear model with few features, not improving the rmse 
+n_data<- df1_Agg[c(1,21:66,108)]
+m_data<- df2_Agg[c(1, 21:66,108)]
+linear.model <- lm(LogDaysInHospital ~. , data=n_data)
 summary(linear.model)
 
 pred1 <- predict(linear.model, newdata=df2_Agg[,-c(7,108)])
-pred1
-
 
 m<-pred1
 o<-df2_Agg[108]
-
 rm<- (sqrt(mean((m - o)^2)))
 
 rmse(o,m)
@@ -307,8 +306,7 @@ rmse(o,m)
 
 
 
-
-#### linear model using LogDaysInHospital
+#### linear model using LogDaysInHospital rmse = 1.1872
 linear.model1 <- lm(LogDaysInHospital ~. , data=df1_Agg[-7])
 summary(linear.model1)
 
@@ -322,7 +320,7 @@ o<-df2_Agg[108]
 rm<- (sqrt(mean((m - o)^2)))
 
 rmse(o,m)
-###############ridge regression using glmnet ##################
+###############ridge regression using glmnet ############### R squared = 0.1433
 x<- as.matrix(df1_Agg[,-c(7,108)])
 y<- df1_Agg$LogDaysInHospital
 
@@ -355,12 +353,28 @@ rsq
 
 
 
-# lasso
+############### lasso regression ############## rmse = 1.2598
 library(glmnet)
+x<- as.matrix(df1_Agg[,-c(7,108)])
+y<- df1_Agg$LogDaysInHospital
+x1<- as.matrix(df2_Agg[,-c(7,108)])
+y1<-df2_Agg$LogDaysInHospital
+
+lambdas <- 10^seq(3, -2, by = -.1)
 
 lasso.mod <- glmnet(x, y, alpha = 1)
 lasso.pred <- predict(lasso.mod, s = lambdas, newx = x1)
 rm<- (sqrt(mean((lasso.pred-y1)^2)))
+
+
+############ glm #################### rmse = 1.3209
+# GBM
+mod_glm <- glm(LogDaysInHospital ~ ., family = "poisson", data = df1_Agg[, -c(1, 7)])
+pred_glm_orig <- predict(mod_glm, df2_Agg[,-c(1, 7,108)])
+pred_glm <- log(ifelse(pred_glm_orig < 0, 0, pred_glm_orig) + 1)
+rmse(pred_glm, df2_Agg$LogDaysInHospital)
+
+
 
 
 
