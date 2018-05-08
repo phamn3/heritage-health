@@ -10,6 +10,11 @@ library(readr)
 if(!(require(dplyr))) install.packages("dplyr")
 if(!(require(ggplot2))) install.packages("ggplot2")
 if(!require(ggcorrplot)) install.packages("ggcorrplot")
+if(!require(ggcorrplot)) install.packages("ggcorrplot")
+if(!require(purrr)) install.packages("purrr")
+if(!require(tidyr)) install.packages("tidyr")
+if(!require(glmnet)) install.packages("glmnet")
+if(!require(Metrics)) install.packages("Metrics")
 library(purrr)
 library(tidyr)
 library(Metrics)
@@ -240,13 +245,11 @@ df1_Agg$Sex_Missing <- ifelse(df1_Agg$Sex_Missing > 0, 1, 0)
 df1_Agg<- df1_Agg[df1_Agg$DaysInHospital< 365,]
 
 
-#EDA for some variables
+################## Last Minute EDA for some variables #########################################
 hist((df1_Agg$DaysInHospital[df1_Agg$DaysInHospital>0]), col="darkgreen", main="Agg_DIH", xlab="DIH", ylab="SUM")
-
 
 # correlation between dayinhospital and rest of the variables.
 cor_output<- as.data.frame(cor(df1_Agg$DaysInHospital,df1_Agg))
-
 
 corr <- round(cor(df1_Agg, use="all.obs", method = "pearson"),5)
 corr
@@ -254,14 +257,11 @@ melt_corr <- melt(corr)
 attach(melt_corr)
 head(melt_corr[order(value, decreasing=TRUE), ], 150)
 tail(melt_corr[order(value, decreasing=TRUE), ], 30)
-
-
 ggcorrplot(corr,tl.cex = 6, tl.srt = 90) + ggtitle("Correlation of Numerical Variables")
 
 
 
-
-####### adding log of DaysInHospital"
+###################### adding log of DaysInHospital ###################################
 df1_Agg$LogDaysInHospital <- log(df1_Agg$DaysInHospital + 1)
 
 ### check to see the distribution of dependent variables after taking log.
@@ -270,38 +270,39 @@ hist((df1_Agg$LogDaysInHospital), col="darkgreen", main="Agg_DIH", xlab="Log_DIH
 
 colnames(df1_Agg)
 
-#### testing a base model1 with DIH = 0 , results in rmse = 1.3745
+####################################### Modeling #######################################
+################ 1. Base Model 1
+#results in rmse = 1.3745
 rmse(log(0 + 1), df2_Agg$LogDaysInHospital)
 
+################ 2. Base Model 2
 # Testing a base model2 with DIH_Y2 = mean(DIH_Y1), results in rmse = 1.2825
 rmse(mean(df1_Agg$LogDaysInHospital, na.rm = TRUE), df2_Agg$LogDaysInHospital)
 
 
-####  testing linear model with few features, not improving the rmse , can be ignored
-n_data<- df1_Agg[c(1,21:66,108)]
-m_data<- df2_Agg[c(1, 21:66,108)]
-linear.model <- lm(LogDaysInHospital ~. , data=n_data)
-summary(linear.model)
+############### 3. Linear Model
+#### First iteration - testing linear model with few features, not improving the rmse , can be ignored
+#n_data<- df1_Agg[c(1,21:66,108)]
+#m_data<- df2_Agg[c(1, 21:66,108)]
+#linear.model <- lm(LogDaysInHospital ~. , data=n_data)
+#summary(linear.model)
 
-pred1 <- predict(linear.model, newdata=df2_Agg[,-c(7,108)])
+#pred1 <- predict(linear.model, newdata=df2_Agg[,-c(7,108)])
 
-m<-pred1
-o<-df2_Agg[108]
-rm<- (sqrt(mean((m - o)^2)))
+#m<-pred1
+#o<-df2_Agg[108]
+#rm<- (sqrt(mean((m - o)^2)))
 
-rmse(o,m)
+#rmse(o,m)
 
-
-
-
-#### linear model using LogDaysInHospital rmse = 1.1872, R squared very low = 0.1381
+#### Actual Iteration - linear model using LogDaysInHospital
+#rmse = 1.1872, R squared very low = 0.1381
 
 linear.model1 <- lm(LogDaysInHospital ~. , data=df1_Agg[-7])
 summary(linear.model1)
 
 pred_lm <- predict(linear.model1, newdata=df2_Agg[,-c(7,108)])
 pred_lm
-
 
 m<-pred_lm
 o<-df2_Agg[108]
@@ -311,10 +312,9 @@ rmse(o,m)
 # tranforming back to normal number by taking "exp" of the predictors.
 dihY2_lm<- floor(exp(pred_lm) - 1)
 summary(dihY2_lm)
-###################### end linear regression ######################
 
-############### lasso regression ############## rmse = 1.2598
-library(glmnet)
+
+############### 4. lasso regression ############## rmse = 1.2598
 x<- as.matrix(df1_Agg[,-c(7,108)])
 y<- df1_Agg$LogDaysInHospital
 x1<- as.matrix(df2_Agg[,-c(7,108)])
@@ -331,9 +331,7 @@ rm<- (sqrt(mean((lasso.pred-y1)^2)))
 dihY2_lasso<-as.vector(floor(exp(lasso.pred) - 1))
 summary(dihY2_lasso)
 
-#################### end lasso #############################
-
-#################### glm #################### rmse = 1.3209
+#################### 5. glm #################### rmse = 1.3209
 # GBM
 mod_glm <- glm(LogDaysInHospital ~ ., family = "poisson", data = df1_Agg[, -c(1, 7)])
 pred_glm_orig <- predict(mod_glm, df2_Agg[,-c(1, 7,108)])
@@ -345,8 +343,7 @@ dihY2_glm<- floor(exp(pred_glm) - 1)
 summary(dihY2_glm)
 
 
-
-############
+############ Tried this iteration but did not work
 # Stepwise Regression
 library(MASS)
 #linear.model <- lm(LogDaysInHospital ~. , data=df1_Agg[-7])
@@ -390,16 +387,8 @@ dihY2_glm<- floor(exp(y_predicted) - 1)
 summary(dihY2_glm)
 
 
-################ end ridge regression ################
-
-
-
-
-
-
-
-
-### ensemble model with weighted average of Lasso, glm and Linear model improves rmse slighlty from 
+######## ENSEMBLING
+#ensemble model with weighted average of Lasso, glm and Linear model improves rmse slighlty from 
 ## lowest rmse we get from linear model of  1.1872  to 1.186385
 pred_ensemble<- 0.1*lasso.pred  + 0.04*pred_glm + 0.86*pred_lm
 pred_ensemble
@@ -408,8 +397,6 @@ rmse(pred_ensemble, df2_Agg$LogDaysInHospital)
 normal_pred<- as.vector(floor(exp(pred_ensemble) - 1))
 normal_pred
 summary(normal_pred)
-
-
 
 
 #random forest ####################### doesn't stop so comenting out 
