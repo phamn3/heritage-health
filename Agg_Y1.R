@@ -212,6 +212,12 @@ ggplot(data = df1) +
 
 ggplot(data = df1) +
   geom_count(mapping = aes(x = Sex, y = PrimaryConditionGroup))
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(x = Sex, y = DrugCount))
+
+ggplot(data = df1) +
+  geom_count(mapping = aes(y = AgeAtFirstClaim, x = DrugCount))
 ### end categorical variables
 
 
@@ -269,6 +275,10 @@ ggcorrplot(corr,tl.cex = 6, tl.srt = 90) + ggtitle("Correlation of Numerical Var
 
 ####### adding log of DaysInHospital"
 df1_Agg$LogDaysInHospital <- log(df1_Agg$DaysInHospital + 1)
+
+### check to see the distribution of dependent variables after taking log.
+hist((df1_Agg$LogDaysInHospital), col="darkgreen", main="Agg_DIH", xlab="Log_DIH", ylab="SUM")
+
 
 
 
