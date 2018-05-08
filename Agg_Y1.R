@@ -307,6 +307,11 @@ rmse(o,m)
 
 
 #### linear model using LogDaysInHospital rmse = 1.1872
+# Stepwise Regression
+library(MASS)
+step <- stepAIC(linear.model1, direction="both")
+step$anova # display results
+
 linear.model1 <- lm(LogDaysInHospital ~. , data=df1_Agg[-7])
 summary(linear.model1)
 
