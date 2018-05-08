@@ -307,10 +307,6 @@ rmse(o,m)
 
 
 #### linear model using LogDaysInHospital rmse = 1.1872
-# Stepwise Regression
-library(MASS)
-step <- stepAIC(linear.model1, direction="both")
-step$anova # display results
 
 linear.model1 <- lm(LogDaysInHospital ~. , data=df1_Agg[-7])
 summary(linear.model1)
@@ -325,6 +321,18 @@ o<-df2_Agg[108]
 rm<- (sqrt(mean((m - o)^2)))
 
 rmse(o,m)
+
+
+
+############
+# Stepwise Regression
+library(MASS)
+#linear.model <- lm(LogDaysInHospital ~. , data=df1_Agg[-7])
+#summary(linear.model1)
+
+#step <- stepAIC(linear.model1, direction="both")
+#step$anova # display results
+
 ###############ridge regression using glmnet ############### R squared = 0.1433
 x<- as.matrix(df1_Agg[,-c(7,108)])
 y<- df1_Agg$LogDaysInHospital
@@ -383,33 +391,19 @@ rmse(pred_glm, df2_Agg$LogDaysInHospital)
 
 
 
-#random forest #######################
+#random forest ####################### doesn't stop so comenting out 
 set.seed(123)
 require(randomForest)
-#model.rf=randomForest(df1_Agg$LogDaysInHospital ~ . , data = df1_Agg[-7])
 
-#set.seed(1)
-#rf_mod <- randomForest(LogDaysInHospital~., data=df1_Agg[-7])
-#print(rf_mod) #print results
-#importance(rf_mod) #look at importance of predictors
-#varImpPlot(rf_mod)
-
-#predictions with probabilities
-#rf_pred <- predict(rf_mod, newdata=test[,-23], type="prob")
-#rf_auc <- auc(test$readmitted, rf_pred[,2])
-#plot(roc(test$readmitted,rf_pred[,2]), main="ROC of Random Forest")
-#rf_auc
-
-############
 library(randomForest)
-set.seed(1234)
-mod_rf <- randomForest(LogDaysInHospital ~ ., 
-                       data = df1_Agg[-7],
-                       importance = TRUE, ntree = 2000, mtry = 3, 
-                       nodesize = 10, maxnodes = 500, replace = FALSE, 
-                       do.trace = 10)
-pred_rf <- predict(mod_rf, df2_Agg[,-c(7,108)])
-rmse(pred_rf, df2_Agg$LogDaysInHospital)
+#set.seed(1234)
+#mod_rf <- randomForest(LogDaysInHospital ~ ., 
+#                       data = df1_Agg[-7],
+#                       importance = TRUE, ntree = 2000, mtry = 3, 
+#                       nodesize = 10, maxnodes = 500, replace = FALSE, 
+#                       do.trace = 10)
+#pred_rf <- predict(mod_rf, df2_Agg[,-c(7,108)])
+#rmse(pred_rf, df2_Agg$LogDaysInHospital)
 
 
 
